@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Copy & Paste</title>
+  <meta name="description" content="Página simples para copiar, colar e exibir conteúdo (otimizada para mobile)." />
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#10b981;--muted:#94a3b8;--glass:rgba(255,255,255,0.03)}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(180deg,#071025 0%, #071830 100%);color:#e6eef8}
+    .wrap{min-height:100%;display:flex;flex-direction:column;gap:16px;padding:20px;max-width:720px;margin:0 auto}
+    header{display:flex;align-items:center;gap:12px}
+    .logo{background:var(--glass);padding:10px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px}
+    h1{font-size:18px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border-radius:14px;padding:14px;box-shadow:0 6px 20px rgba(2,6,23,0.6);}
+    textarea{width:100%;min-height:120px;border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px;resize:vertical}
+    .row{display:flex;gap:8px;margin-top:10px}
+    .btn{flex:1;padding:12px;border-radius:10px;border:0;background:var(--accent);color:#062018;font-weight:600;font-size:15px}
+    .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);font-weight:600}
+    .output{min-height:90px;padding:12px;border-radius:10px;background:#021124;border:1px solid rgba(255,255,255,0.03);white-space:pre-wrap;font-size:15px;margin-top:10px}
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+    .hint{font-size:13px;color:var(--muted)}
+    footer{margin-top:auto;text-align:center;color:var(--muted);font-size:13px;padding:14px}
+    @media(min-width:640px){h1{font-size:20px}.wrap{padding:28px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo" aria-hidden>📋</div>
+      <div>
+        <h1>Copy & Paste</h1>
+        <p class="lead">Cole algo na caixa abaixo, veja o conteúdo e copie de volta para a área de transferência.</p>
+      </div>
+    </header>
+
+    <div class="card">
+      <label for="input" style="font-size:13px;color:var(--muted)">Caixa de entrada (cole aqui):</label>
+      <textarea id="input" placeholder="Cole ou escreva algo..." aria-label="caixa de entrada"></textarea>
+
+      <div class="row">
+        <button id="pasteBtn" class="btn secondary">Colar da Área de Transferência</button>
+        <button id="showBtn" class="btn">Exibir Conteúdo</button>
+      </div>
+
+      <div class="meta">
+        <span class="hint">Conteúdo exibido abaixo</span>
+        <button id="copyBtn" class="btn" style="max-width:160px">Copiar Exibido</button>
+      </div>
+
+      <div id="output" class="output" aria-live="polite"></div>
+    </div>
+
+    <footer>
+      Versão simples — pronto para subir no GitHub e hospedar no Vercel.
+    </footer>
+  </div>
+
+  <script>
+    const input = document.getElementById('input');
+    const pasteBtn = document.getElementById('pasteBtn');
+    const showBtn = document.getElementById('showBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const output = document.getElementById('output');
+
+    async function readClipboard() {
+      try {
+        if (!navigator.clipboard) throw new Error('Clipboard API não disponível');
+        const text = await navigator.clipboard.readText();
+        input.value = text;
+        flash('Colado com sucesso');
+      } catch (err) {
+        flash('Falha ao colar: '+err.message);
+      }
+    }
+
+    function showContent() {
+      const val = input.value || '';
+      output.textContent = val;
+      flash('Conteúdo exibido');
+    }
+
+    async function copyOutput() {
+      try {
+        const text = output.textContent || '';
+        if (!navigator.clipboard) throw new Error('Clipboard API não disponível');
+        await navigator.clipboard.writeText(text);
+        flash('Copiado para a área de transferência');
+      } catch (err) {
+        flash('Falha ao copiar: '+err.message);
+      }
+    }
+
+    function flash(msg){
+      // notificação simples e discreta
+      const prev = document.querySelector('._flash');
+      if(prev) prev.remove();
+      const d = document.createElement('div');
+      d.className = '_flash';
+      d.textContent = msg;
+      Object.assign(d.style,{position:'fixed',left:'50%',transform:'translateX(-50%)',bottom:'22px',background:'rgba(0,0,0,0.6)',padding:'10px 14px',borderRadius:'10px',color:'#fff',fontSize:'13px',zIndex:9999});
+      document.body.appendChild(d);
+      setTimeout(()=>d.remove(),1800);
+    }
+
+    // eventos
+    pasteBtn.addEventListener('click', readClipboard);
+    showBtn.addEventListener('click', showContent);
+    copyBtn.addEventListener('click', copyOutput);
+
+    // atalhos mobile: ao colar via teclado, atualizar automaticamente
+    input.addEventListener('input', () => {
+      // noop for now; we let user press Exibir
+    });
+
+    // Permitir colar automático ao abrir (opcional) — só para dispositivos que suportam
+    window.addEventListener('load', () => input.focus());
+  </script> 
+</body>
+</html>
